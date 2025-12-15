@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brandenburg</title>
+
+<style>
+/* ================= THEME ================= */
+html[data-theme="light"] {
+  --accent:#0a84ff;
+  --bg:#ffffff;
+  --text:#111;
+  --muted:#6b7280;
+  --card-bg:rgba(255,255,255,.95);
+  --shadow:rgba(0, 0, 0, 0.342);
+}
+html[data-theme="dark"] {
+  --accent:#0a84ff;
+  --bg:#0f0f0f;
+  --text:#eee;
+  --muted:#aaa;
+  --card-bg:rgba(28,28,28,.95);
+  --shadow:rgba(53, 53, 53, 0.6);
+}
+
+/* ================= BASE ================= */
+body {
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  transition:.3s;
+}
+
+/* ================= HEADER ================= */
+header {
+  position:sticky;
+  top:0;
+  z-index:100;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 24px;
+  backdrop-filter:blur(10px);
+  background:color-mix(in srgb, var(--bg) 80%, transparent);
+  border-bottom:1px solid var(--shadow);
+}
+
+#tabNav {
+  position:relative;
+  display:flex;
+  padding:4px;
+  background:var(--card-bg);
+  border-radius:14px;
+}
+#tabNav button {
+  border:0;
+  background:none;
+  padding:10px 26px;
+  font-weight:600;
+  cursor:pointer;
+  color:var(--text);
+  z-index:2;
+}
+#tabNav button.active { color:#fff; }
+
+#tabHighlight {
+  position:absolute;
+  top:4px;
+  bottom:4px;
+  left:4px;
+  background:var(--accent);
+  border-radius:10px;
+  width:0;
+  transition:transform .35s ease,width .35s ease;
+}
+
+#searchBox {
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid var(--shadow);
+  background:var(--bg);
+  color:var(--text);
+}
+#themeToggle {
+  font-size:20px;
+  background:none;
+  border:none;
+  cursor:pointer;
+}
+
+.footer {
+  display: flex;
+  justify-content: center; /* Centers horizontally */
+  border-top: 2px solid #6b7280; /* Only top border */
+  margin-top: 20px; /* Space above the line */
+  margin-bottom: 10px;
+}
+
+/* ================= TABS ================= */
+.tabpage {
+  display:none;
+  padding:32px;
+  opacity:0;
+  transition:opacity .35s ease;
+}
+.tabpage.active {
+  display:block;
+}
+.tabpage.show {
+  opacity:1;
+}
+
+/* ================= CARDS ================= */
+.stack { display:flex; flex-direction:column; gap:24px; }
+
+.card {
+  background:var(--card-bg);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 6px 20px var(--shadow);
+  cursor:pointer;
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+.card.nested {
+  background:var(--card-bg);
+  border-radius: 0px;
+  overflow:hidden;
+  box-shadow:0 6px 20px var(--shadow);
+  cursor:pointer;
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+
+.card:hover {
+  transform:translateY(-6px);
+  box-shadow:0 16px 32px var(--shadow);
+}
+
+.thumb { height:180px; overflow:hidden; }
+.thumb.big {height: 300px;}
+.thumb.large {height: 400px;}
+.thumb.huge {height: 500px;}
+.thumb img { width:100%; height:100%; object-fit:cover; }
+.thumb.vert img{ width:8%; height:100%; object-fit:cover; ;}
+
+.content { padding:16px 18px; }
+.heading { margin:0; font-size:18px; font-weight:700; }
+/* .desc { display:none; margin-top:8px; color:var(--muted); } */
+
+/* ===== CARD DESCRIPTION ===== */
+.desc {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    height 0.35s ease,
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.desc.open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.descpicture {
+  max-height: 300px;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 10px;
+}
+
+
+/* ================= SCROLL FADE ================= */
+.fade {
+  opacity:0;
+  transform:translateY(20px);
+  transition:.6s;
+}
+.fade.visible {
+  opacity:1;
+  transform:none;
+}
+
+/* ================= SEARCH WINDOW ================= */
+#searchResults {
+  position:fixed;
+  top:72px;
+  right:24px;
+  width:340px;
+  max-height:60vh;
+  overflow:auto;
+  background:var(--card-bg);
+  border-radius:14px;
+  box-shadow:0 20px 40px var(--shadow);
+  display:none;
+  z-index:200;
+}
+
+.search-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.search-item .tab-label {
+  font-size: 0.8em;
+  padding-left: 5px;
+  color: gray;
+  font-style: italic;
+}
+
+.search-item:hover {
+  background:var(--accent);
+  color:#fff;
+}
+.search-item small {
+  display:block;
+  opacity:.8;
+  font-size:13px;
+}
+
+.search-item mark {
+  background-color: rgb(251, 255, 0);
+  color: black;
+  font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+  <nav id="tabNav">
+    <div id="tabHighlight"></div>
+    <button class="active" data-tab="now">Now</button>
+    <button data-tab="middle">Middle Ages</button>
+  </nav>
+
+  <div style="display:flex;gap:12px">
+    <input id="searchBox" placeholder="Search…">
+    <button id="themeToggle">☀️</button>
+  </div>
+</header>
+
+<div id="searchResults"></div>
+
+<!-- NOW -->
+<section class="tabpage active show" id="tab-now">
+  <div class="stack">
+    <div class="card fade">
+      <div class="thumb big"><img src="https://erlebnis-brandenburg.de/files/STG_Daten/346_Stadtansichten/Auf_dem_Wasser/salzhofufer_c_martin_viertel.jpg"></div>
+      <div class="content">
+        <h3 class="heading">General</h3>
+        <div class="desc">
+          Today, Brandenburg an der Havel is a peaceful and modern city. The old city wall is not complete anymore, but many parts of it are still there. Where the wall used to be, there is now a walking path called the Wallanlage. It is a green and quiet place with trees, benches and flowers. Many people go there to walk, relax or ride their bikes.<br><br>
+          Some of the old towers still stand, like the Steintorturm the Mühlentorturm. These towers are no longer used for guarding the city. Now they are historical buildings. People can visit them and learn about the city’s history. Sometimes there are exhibitions or events inside.<br><br>
+          The old city gates, the Steintor and the Mühlentor, are not used as gates anymore, but parts of the buildings still exist. You can still see how strong and big they were. Today, the streets are open and there are no guards, of course.<br><br>
+          Brandenburg has changed a lot since the Middle Ages. But the wall, the towers and the old gates remind us of the past. They are a special part of the city and show how people used to live hundreds of years ago.
+        </div>  
+      </div>
+    </div>
+
+    <div class="card fade">
+      <div class="thumb huge"><img src="https://www.hghi.de/fileadmin/files/projects/sankt_annen_galerie/04.jpg"></div>
+      <div class="content">
+        <h3 class="heading">Entertainment</h3>
+        <div class="desc">
+          Brandenburg an der Havel is a nice city with many fun things to do. You can go to the cinema and watch new movies with your friends. There are also parks where you can walk, ride your bike, or have a picnic.<br><br>
+          If you like sports, you can go swimming in the Marienbad or play football in a sports club. In summer, many people go to the lake or do canoeing on the river Havel.<br><br>
+          There are also museums where you can learn about the history of the city. The theater sometimes has concerts or plays, which are fun to watch.<br><br>
+          Brandenburg is not a big city, but there are many things to enjoy and have fun!
+        </div>  
+      </div>
+    </div>
+
+    <div class="card fade">
+      <div class="thumb"><img src="https://s3-media0.fl.yelpcdn.com/bphoto/3kinVQBQ6L-MljmnLwd8Ug/o.jpg"></div>
+      <div class="content">
+        <h3 class="heading">City wall</h3>
+        <div class="desc">
+          The town wall of Brandenburg an der Havel is today only partially preserved. Large sections were demolished over time or incorporated into other buildings. However, some wall remains and several historic gate towers, such as the Steintor Tower, Plauer Gate Tower, Rathenower Gate Tower, and Neustadt Mill Gate Tower, can still be seen. These remains are reminders of the city’s medieval fortifications and are still part of the modern cityscape.<br>
+          <img src="https://img.fotocommunity.com/der-steintorturm-in-brandenburg-an-der-havel-d1650590-daec-40c4-b23f-e8ab9902ece4.jpg?height=1080" class="descpicture">
+          <img src="https://erlebnis-brandenburg.de/files/STG_Daten/346_Stadtansichten/Tuerme_Stadtmauer/Rathenower_Torturm/rathenowertorturm_c_boettcher-f8936d27.jpg" class="descpicture">
+          <img src="https://tse2.mm.bing.net/th/id/OIP.wYBsjp4zPS7w4wqpXdBsSAAAAA?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3" class="descpicture">
+          <img src="https://live.staticflickr.com/65535/46713918975_961350c98c_b.jpg" class="descpicture">
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card fade">
+      <div class="thumb huge">
+        <img src="https://lh6.googleusercontent.com/proxy/OpOiWqn4Zao9TOPiintrYppSFlcX1FMcpyOiribff6OBbm4lVyalGWAxkpzbCHNFWSp423Jc6YthhrVGK9lBNMm_kf65jsgTktjnbxY_L_lNC-5SecQdqz9tg1v-Mb5wy_w">
+      </div>
+
+      <div class="content">
+        <h3 class="heading">"Waldmöpse"</h3>
+
+        <div class="desc">
+          "Waldmöpse" are a series of life-sized bronze sculptures scattered throughout the city of Brandenburg an der Havel, created as a homage to the city’s native humourist Vicco von Bülow (Loriot) and his 1972 sketch “Tierstunde – Der wilde Waldmops.” The figures depict the fictional “wild woodland pug,” a humorous creature with horns and a curled tail, in various poses such as sitting, standing, lying down, or sniffing. These artworks were designed by sculptor Clara Walter and first introduced to the city in 2015 in connection with the Federal Garden Show. Initially planned as eight pieces forming a “Waldmops centre,” the project expanded over time and now includes more than 25 bronze Waldmöpse placed around historic districts including the Old Town, Neustadt, and Cathedral Island. They serve as public art landmarks and reflect Loriot’s cultural legacy in his birth city.
+        </div>
+      </div>
+    </div>  
+
+    <div class="card fade">
+      <div class="thumb large">
+        <img src="https://www.dom-brandenburg.de/fileadmin/_processed_/a/9/csm_006_Dom_zu_Brandenburg_Dr._Peter-Michael_Bauers_3346d151e0.jpg">
+      </div>
+
+      <div class="content">
+        <h3 class="heading">Churches</h3>
+
+        <div class="desc">
+          Brandenburg an der Havel’s historic churches still exhibit their original medieval structural forms today, with core architectural elements preserved through restoration rather than replacement. Key churches such as St. Gotthardt and St. Katharinen maintain their medieval layouts and Gothic/brick construction, having undergone renovation work to keep them sound and usable while retaining their historical character.
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- MIDDLE -->
+<section class="tabpage" id="tab-middle">
+  <div class="stack">
+
+    <div class="card fade">
+      <div class="thumb huge">
+        <img src="https://themator.museum-digital.de/images/02060915182.jpg">
+      </div>
+      <div class="content">
+        <h3 class="heading">General (castle)</h3>
+        <div class="desc">
+          In the Middle Ages, Brandenburg an der Havel was a small but important city. To protect the city from enemies, the people built a large stone wall all around it. This wall was very thick and high, and it had strong towers and gates. It helped to keep out robbers, enemy soldiers and wild animals.<br><br>
+          There were two big city gates: the Steintor and the Mühlentor. These gates were the main entrances to the city. They were always guarded, and people had to ask for permission to go in or out. Sometimes the gates were closed at night or during danger. The gates had wooden doors and heavy iron parts to make them stronger.<br><br>
+          Next to the gates, there were high towers like the Steintorturm and the Mühlentorturm. From the top of these towers, the guards could look out over the land and see if danger was coming. The towers were also used to store weapons or food.<br><br>
+          Inside the walls, the city was full of life. There were narrow streets, small houses, markets, and churches. Craftsmen, traders and farmers lived and worked in the city. The walls made the people feel safe and protected. The city wall was a very important part of life in medieval Brandenburg.
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade">
+      <div class="thumb huge">
+        <img src="https://www.zeilenabstand.net/wp-content/uploads/2022/03/Stadtplan-Brandenburg-1850-768x660.jpg">
+      </div>
+      <div class="content">
+        <h3 class="heading">Early Medieval Brandenburg</h3>
+        <div class="desc">
+          In the early Middle Ages, Brandenburg an der Havel developed from a Slavic settlement known as Brenna. Due to its strategic position on the Havel River, it became an important political and military center. In 928/929, the area was conquered by King Henry I of East Francia, laying the foundation for later German rule.
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade">
+      <div class="thumb large">
+        <img src="https://www.zeilenabstand.net/wp-content/uploads/2022/03/Altstadt-und-Marienberg-Brandenburg-aus-Chronik-des-Zacharias-Garcaeus.jpg">
+      </div>
+
+      <div class="content">
+        <h3 class="heading">The Medieval City Structure</h3>
+
+        <div class="desc">
+          By the 12th and 13th centuries, Brandenburg an der Havel consisted of several distinct towns: the Old Town, New Town, and Cathedral Quarter. Each part had its own walls, markets, and administration, reflecting the fragmented urban structure typical of medieval cities.
+
+          <!-- NESTED CARD -->
+          <div class="card nested fade" style="margin-top:14px">
+            <div class="thumb big">
+              <img src="https://de-academic.com/pictures/dewiki/82/Ratzenwall.jpg">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">City Walls and Defense</h3>
+              <div class="desc">
+                <div class="desc-inner">
+                  Strong stone walls, gates, and towers protected Brandenburg an der Havel during the Middle Ages. These defenses were necessary due to frequent regional conflicts and feuds. Parts of the medieval fortifications influenced the later layout of the city.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END NESTED CARD -->
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade">
+      <div class="thumb big">
+        <img src="https://histclo.com/imagef/date/2022/01/med-fair01s.jpg">
+      </div>
+      <div class="content">
+        <h3 class="heading">Trade and Economy</h3>
+        <div class="desc">
+          During the High and Late Middle Ages, Brandenburg an der Havel benefited from river trade along the Havel waterway. Crafts, fishing, and regional markets supported the local economy. The city became part of important trade networks within the Margraviate of Brandenburg.
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade" id="Fritze-Bollmann">
+      <div class="thumb large"><img src="https://vonortzuort.reisen/wp-content/uploads/2018/10/fritze-bollmann-.jpg"></div>
+      <div class="content">
+        <h3 class="heading">Fritze Bollmann</h3>
+        <div class="desc">
+          Fritze Bollmann was a barber. He had 11 children and 3 of these reached adulthood. He was mocked by children because he was in economic hardship and an alcoholic. A little later he died as he was fishing and fell into the water. Nowadays we can listen to the Fritze Bollmann song.
+        </div>  
+      </div>
+    </div>
+
+    <div class="card fade">
+      <div class="thumb big">
+        <img src="https://www.kulturreise-ideen.de/uploads/projects/image_11407.jpg">
+      </div>
+
+      <div class="content">
+        <h3 class="heading">Churches</h3>
+
+        <div class="desc">
+          In the Middle Ages, Brandenburg an der Havel developed several important churches that shaped the city’s religious life and urban structure. These church buildings originate largely from the 12th–15th centuries and reflect Romanesque and Gothic styles. :contentReference[oaicite:0]{index=0}
+
+          <!-- NESTED CARD -->
+          <div class="card nested fade" style="margin-top:14px">
+            <div class="thumb large">
+              <img src="https://kulturfeste.de/site/assets/files/9934/682px-dom_brandenburg_vorderseite.450x0.jpg">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">Cathedral of St. Peter and Paul</h3>
+              <div class="desc">
+                <div class="desc-inner">
+                  The Cathedral of St. Peter and Paul on the Dominsel (Cathedral Island) was built beginning around 1165 in a late Romanesque style and later expanded in Gothic form. Founded in the diocese established by King Otto I in 948, this church became the ecclesiastical heart of Brandenburg and is considered the cradle of the Mark Brandenburg.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END NESTED CARD -->
+
+          <!-- NESTED CARD -->
+          <div class="card nested fade" style="margin-top:14px">
+            <div class="thumb huge">
+              <img src="https://kulturfeste.de/site/assets/files/9990/st__gotthardtkirche_von_sudost.jpg">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">St. Gotthardtkirche</h3>
+              <div class="desc">
+                <div class="desc-inner">
+                  St. Gotthardtkirche in the Old Town dates back to the mid-12th century and was the first major church in Brandenburg, initially serving as a bishop’s church before the cathedral’s completion. Parts of the original Romanesque westwork remain, while the nave was rebuilt in the Gothic style.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END NESTED CARD -->
+
+          <!-- NESTED CARD -->
+          <div class="card nested fade" style="margin-top:14px">
+            <div class="thumb large">
+              <img src="https://tse1.mm.bing.net/th/id/OIP.GTZRIZbVMqj0ig0qQ1zMKQHaFg?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">St. Katharinenkirche</h3>
+              <div class="desc">
+                <div class="desc-inner">
+                  St. Katharinenkirche, the main parish church of the Neustadt, was built in the late 14th century in Brick Gothic style and completed around 1401. It became one of the largest medieval churches in the city, noted for its Gothic architecture and rich interior decorations.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END NESTED CARD -->
+
+          <!-- NESTED CARD -->
+          <div class="card nested fade" style="margin-top:14px">
+            <div class="thumb large">
+              <img src="https://api.tmb.pixelpoint.biz/api/asset/142684/thumbnail/595/372.jpg">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">St. Nikolai Church</h3>
+              <div class="desc">
+                <div class="desc-inner">
+                  St. Nikolai, built in the 12th century probably for the merchants’ settlement later incorporated into Brandenburg, was an early Romanesque parish church. By the 14th century it had fallen into ruin, but its medieval origins reflect the diversity of church foundations in the city.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END NESTED CARD -->
+
+          <!-- NESTED CARD -->
+          <div class="card nested fade" style="margin-top:14px">
+            <div class="thumb huge">
+              <img src="https://www.urban-graphics.de/wp-content/uploads/sites/4/2017/01/Brandenburg-Havel-Stadtrundgang-20160813-4230.jpg">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">St. Johanniskirche</h3>
+              <div class="desc">
+                <div class="desc-inner">
+                  St. Johanniskirche was the church of a late medieval Franciscan monastery. Built in Brick Gothic style, it served the monastic community and local faithful; later structural changes and war damage reduced its  fecclesiasticalunction.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END NESTED CARD -->
+          
+          <div class="card nested fade">
+            <div class="thumb">
+              <img src="https://www.stadt-brandenburg.de/fileadmin/_p/3/d/csm_Pauli_2c323870f6.jpg">
+            </div>
+
+            <div class="content">
+              <h3 class="heading">St. Paul’s Monastery</h3>
+
+              <div class="desc">
+                St. Pauli Kloster is a former Dominican monastery in Brandenburg an der Havel, founded in 1286 when the Margrave Otto the Long donated his city estate to the Dominican order. The complex grew in the late 13th and early 14th centuries with a Gothic church and cloister buildings surrounding a courtyard. During the Reformation the monastery was secularised; its church became a Protestant parish and the cloister buildings were used for hospitals and charitable housing. Heavily damaged during World War II, only the surrounding walls and parts of the structure survived. From 2004 to 2008 the site was restored and adapted to house the Archaeological State Museum of Brandenburg, displaying prehistoric to modern archaeological finds and providing insight into regional history. The church and buildings today also serve as cultural and event spaces.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+</section>
+
+<script>
+/* ===== THEME ===== */
+themeToggle.onclick = () => {
+  document.documentElement.dataset.theme =
+    document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  themeToggle.textContent =
+    document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
+};
+
+/* ===== TAB HIGHLIGHT ===== */
+const highlight = document.getElementById("tabHighlight");
+const tabs = [...document.querySelectorAll("#tabNav button")];
+
+function moveHighlight() {
+  const a = document.querySelector("#tabNav .active");
+  highlight.style.width = a.offsetWidth + "px";
+  highlight.style.transform = `translateX(${a.offsetLeft}px)`;
+}
+window.addEventListener("load", moveHighlight);
+window.addEventListener("resize", moveHighlight);
+
+/* ===== TAB SWITCH (NO OVERLAP, SAFE FADE) ===== */
+let isSwitching = false;
+
+tabs.forEach(btn => {
+  btn.onclick = () => {
+    if (btn.classList.contains("active") || isSwitching) return;
+    isSwitching = true;
+
+    const current = document.querySelector(".tabpage.active");
+    const next = document.getElementById("tab-" + btn.dataset.tab);
+
+    // nav state
+    tabs.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    moveHighlight();
+
+    // fade out current tab
+    current.classList.remove("show");
+
+    setTimeout(() => {
+      // fully hide old tab BEFORE showing next
+      current.classList.remove("active");
+      current.style.display = "none";
+
+      // prepare next tab
+      next.style.display = "block";
+      next.classList.add("active");
+
+      requestAnimationFrame(() => {
+        next.classList.add("show");
+      });
+
+      // rebind scroll animations
+      observe(next);
+
+      isSwitching = false;
+    }, 350); // MUST match CSS transition
+  };
+});
+
+document.addEventListener("click", e => {
+  const card = e.target.closest(".card");
+  if (!card) return;
+
+  const desc = card.querySelector(":scope > .content > .desc");
+  if (!desc) return;
+
+  const isOpen = desc.classList.contains("open");
+
+  if (isOpen) {
+    /* ---------- CLOSE (REVERSED OPEN) ---------- */
+
+    // 1. lock current height
+    desc.style.height = desc.scrollHeight + "px";
+
+    // 2. force reflow (CRITICAL)
+    desc.offsetHeight;
+
+    // 3. animate to closed
+    desc.style.height = "0px";
+    desc.classList.remove("open");
+
+  } else {
+    /* ---------- OPEN ---------- */
+
+    desc.classList.add("open");
+
+    const target = desc.scrollHeight;
+    desc.style.height = target + "px";
+
+    desc.addEventListener("transitionend", () => {
+      if (desc.classList.contains("open")) {
+        desc.style.height = "auto";
+      }
+    }, { once: true });
+  }
+});
+
+
+
+/* ===== SCROLL FADE ===== */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => e.isIntersecting && e.target.classList.add("visible"));
+},{threshold:.25});
+
+function observe(scope=document){
+  scope.querySelectorAll(".fade").forEach(el => io.observe(el));
+}
+observe();
+
+/* ===== SEARCH (LOWEST-LEVEL CARDS ONLY) ===== */
+const tabNames = {
+  "tab-now": "Now",
+  "tab-middle": "Middle Ages"
+};
+
+// Helper to safely highlight matched words
+function highlightSafe(text, query) {
+  if (!query) return text;
+
+  // Escape HTML characters
+  const escapedText = text.replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+
+  // Highlight matches
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return escapedText.replace(regex, '<mark>$1</mark>');
+}
+
+searchBox.oninput = () => {
+  searchResults.innerHTML = "";
+  const q = searchBox.value.toLowerCase().trim();
+  if (!q) {
+    searchResults.style.display = "none";
+    return;
+  }
+
+  document.querySelectorAll(".card").forEach(card => {
+    const titleEl = card.querySelector(":scope > .content > .heading");
+    const descEl  = card.querySelector(":scope > .content > .desc");
+    if (!titleEl || !descEl) return;
+
+    const title = titleEl.innerText;
+    const descClone = descEl.cloneNode(true);
+    descClone.querySelectorAll(".card").forEach(nested => nested.remove());
+    const desc = descClone.innerText.trim();
+
+    const combined = (title + " " + desc).toLowerCase();
+    if (!combined.includes(q)) return;
+
+    const tabId = card.closest(".tabpage").id;
+    const tabLabel = tabNames[tabId] || tabId;
+
+    const item = document.createElement("div");
+    item.className = "search-item";
+    item.innerHTML = `
+      <strong>${highlightSafe(title, q)} <span class="tab-label">[${tabLabel}]</span></strong>
+      <small>${highlightSafe(desc, q)}</small>
+    `;
+
+    item.onclick = () => {
+      const cardId = card.id;
+      const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+
+      const newTab = window.open("", "_blank");
+
+      newTab.document.write(`
+        <!DOCTYPE html>
+        <html lang="en" data-theme="${currentTheme}">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Card Preview</title>
+          <style>
+            body { font-family: sans-serif; margin: 20px; }
+            .card { display: block !important; }
+            .card * { pointer-events: none; } /* disable interactions */
+            body > :not(#${cardId}) { display: none; }
+
+            html[data-theme="dark"] { background: #111; color: #eee; }
+            html[data-theme="light"] { background: #fff; color: #111; }
+
+            .thumb {
+              max-height: 400px;
+              overflow: hidden;
+            }
+
+            .thumb img {
+              max-height: 400px;
+              width: auto;
+              height: auto;
+              max-width: 100%;
+              object-fit: contain;
+              display: block;
+            }
+
+          </style>
+        </head>
+        <body>
+          ${card.outerHTML}
+        </body>
+        </html>
+      `);
+
+      newTab.document.close();
+    };
+
+    // Append the item to the search results
+    searchResults.appendChild(item);
+  });
+
+  // Show the search results container if at least one result exists
+  if (searchResults.children.length > 0) {
+    searchResults.style.display = "block";
+  } else {
+    searchResults.style.display = "none";
+  }
+};
+
+</script>
+
+<footer>
+  <div>
+  </div>
+</footer>
+  <div class="footer">
+    Website by Vicco Leonard Singer ©2025<br>
+    sources: <ul>
+      <a href="https://de.wikipedia.org/wiki/Brandenburg_an_der_Havel">Wikipedia</a><br>
+      <a href="https://meetingpoint-brandenburg.de/neuigkeiten/artikel/195169-leserbrief-eine-reise-ins-mittelalterliche-brandenburg-und-deren-schutzbeduerfnis-in-dieser-zeit">Meetingpoint</a><br>
+      <a href="https://www.stadt-brandenburg.de/">Stadt Brandenburg</a>
+    </ul>
+  </div>
+</body>
+</html>
